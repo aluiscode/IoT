@@ -15,9 +15,16 @@ let MetricStub = {
 
 let single = Object.assign({}, agentFixtures.single)
 let id = 1
+let uuid = 'yyy-yyy-yyy';
 let AgentStub = null
 let db = null
 let sandbox = null
+
+let uuidArgs = {
+  where: {
+    uuid,
+  }
+}
 
 test.beforeEach(async () => {
   sandbox = sinon.createSandbox()
@@ -25,6 +32,18 @@ test.beforeEach(async () => {
   AgentStub = {
     hasMany: sandbox.spy()
   }
+
+  // Model findById Stub
+  AgentStub.findOne = sandbox.stub();
+  AgentStub.findOne.withArgs(uuidArgs).returns(Promise.resolve(agentFixtures.byUuid(uuid)))
+
+  // Model update Stub
+  AgentStub.update = sandbox.stub();
+  AgentStub.update.withArgs(single, uuidArgs).returns(Promise.resolve(single));
+
+  // Model findById Stub
+  AgentStub.findById = sandbox.stub();
+  AgentStub.findById.withArgs(id).returns(Promise.resolve(agentFixtures.byId(id)));
 
   const setupDatabase = proxyquire('../', {
     './models/agent': () => AgentStub,
@@ -51,5 +70,20 @@ test.serial('Setup', t => {
 
 test.serial('Agent#findById', async (t) => {
   let agent = await db.Agent.findById(id);
+  t.true(AgentStub.findById.called, 'findById should be called on model');
+  t.true(AgentStub.findById.calledOnce, 'findById should be called once');
+  t.true(AgentStub.findById.calledWith(id), 'findById should be with a specific id');
   t.deepEqual(agent, agentFixtures.byId(1), 'shoud be the same')
+})
+
+test.serial('Agent#createOrUpdate - exists', async t => {
+  let agent = await db.Agent.createOrUpdate(single)
+  t.true(AgentStub.findOne.called, 'findOne should be called on model')
+  t.true(AgentStub.findOne.calledTwice, 'findOne should be called twice')
+  t.true(AgentStub.findOne.calledWith(uuidArgs), 'findOne should be called with uuid args')
+  t.true(AgentStub.update.called, 'agent.update called on model')
+  t.true(AgentStub.update.calledOnce, 'agent.update should be called once')
+  t.true(AgentStub.update.calledWith(single), 'agent.update should be called with specified args')
+
+  t.deepEqual(agent, single, 'agent should be the same')
 })
