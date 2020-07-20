@@ -32,8 +32,31 @@ server.on('clientConnected', client => {
   clients.set(client.id, null)
 })
 
-server.on('clientDisconnected', client => {
+server.on('clientDisconnected', async client => {
   debug(`Client Disconnected: ${client.id}`)
+  const agent = clients.get(client.id);
+
+  if(agent){
+    agent.connected = false
+    try {
+      await agent.create(agent)
+    } catch (error) {
+      return handleError
+    }
+
+    clients.delete(client.id)
+
+    // Notify agent desconnected
+    server.publish({
+      topic: 'agent/disconnected',
+      payload: JSON.stringify({
+        agent: {
+          uuid: agent.uuid,
+        }
+      })
+    })
+    debug(`Client (${client.id}) asociado al agente (${agent.uuid}) marked as disconnected`)
+  }
 })
 
 server.on('published', async (packet, client) => {
@@ -71,6 +94,19 @@ server.on('published', async (packet, client) => {
               }
             })
           })
+        }
+
+        // Store Metrics
+        for(let metric of payload.metrics){
+          let m
+
+          try {
+            m = await Metric.create(aggent.uuid, metric)
+          } catch (error) {
+            return handleError(error)
+          }
+
+          debug(`Metric ${m.id} saved on agent`)
         }
       }
       break
