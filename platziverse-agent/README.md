@@ -11,6 +11,14 @@ const agent = new PlatziverseAgent({
 
 agent.connect()
 
+//propios
+agent.on('connected')
+agent.on('disconnected')
+agent.on('message')
+
+//Mqtt
+agent.on('agent/connected')
+agent.on('agent/disconnected')
 agent.on('agent/message', payload => {
   console.log(payload)
 })
