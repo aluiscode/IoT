@@ -3,7 +3,7 @@ const mosca = require('mosca')
 const redis = require('redis')
 const chalk = require('chalk')
 const config = require('./config')
-const parsePayload = require('./utils')
+const { parsePayload } = require('./utils')
 const db = require('platziverse-db')
 
 const backend = {
@@ -101,12 +101,12 @@ server.on('published', async (packet, client) => {
           let m
 
           try {
-            m = await Metric.create(aggent.uuid, metric)
+            m = await Metric.create(agent.uuid, metric)
           } catch (error) {
             return handleError(error)
           }
 
-          debug(`Metric ${m.id} saved on agent`)
+          debug(`Metric ${m.id} saved on agent ${agent.uuid}`)
         }
       }
       break
