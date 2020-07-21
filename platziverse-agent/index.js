@@ -39,16 +39,17 @@ class PlatziverseAgent extends EventEmiter{
     if(!this._started){
       const opts = this._options;
       this._client = mqtt.connect(opts.mqtt.host);
+      this._started = true
 
       this._client.subscribe('agent/message')
       this._client.subscribe('agent/connected')
       this._client.subscribe('agent/disconnected')
 
-      this._client.on('connect', async () => {
+      this._client.on('connect', () => {
         this._agentId = uuid.v4()
         this.emit('connected', this._agentId)
 
-        this._timer = setInterval(() => {
+        this._timer = setInterval(async () => {
           if (this._metrics.size > 0) {
             let message = {
               agent: {
@@ -79,7 +80,6 @@ class PlatziverseAgent extends EventEmiter{
             this.emit('message', message)
           }
 
-          this.emit('agent/message', 'this is a message')
         }, opts.interval)
       })
 
@@ -100,7 +100,6 @@ class PlatziverseAgent extends EventEmiter{
 
       this._client.on('error', () => this.disconnect())
 
-      this._started = true
     }
   }
 
