@@ -5,7 +5,7 @@
   "description": "A plataform for Agent",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "standard"
   },
   "author": "Luis LC",
   "license": "MIT"
