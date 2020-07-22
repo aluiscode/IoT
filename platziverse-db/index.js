@@ -7,7 +7,7 @@ const defaults = require('defaults')
 
 module.exports = async function (config) {
   config = defaults(config, {
-    dialect: 'sqlite',
+    dialect: 'postgres',
     pool: {
       max: 10,
       min: 1,
